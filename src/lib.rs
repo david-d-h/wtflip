@@ -1,7 +1,10 @@
 #[macro_export]
 macro_rules! wtflip {
+    (return $($tail:tt)*) => (wtflip!( // return statement
+        @internal_return_accumulator [] $($tail)*
+    ));
     (# $ident:ident $(: $(@$($_:tt)* $declare:tt)?)?= $($expr:tt)+) => { // variable declaration or assignment
-        wtflip!(@internal_build_expr[$($($declare)? #[allow(unused_mut)] let mut)? $ident =] [] $($expr)+);
+        wtflip!(@internal_build_expr [$($($declare)? #[allow(unused_mut)] let mut)? $ident =] [] $($expr)+);
     };
     (
         if ($($cond:tt)*) { $($block:tt)* } // if statement
@@ -21,28 +24,35 @@ macro_rules! wtflip {
         if wtflip!($($cond)*) { wtflip!($($block)*); }
         wtflip!($($tail)*);
     };
+    (@ $ident:ident $(($($args:tt)*))? $(; $(@$($_:tt)* $statement:tt)? $($tail:tt)*)?) => { // macro invocation
+        wtflip!(@split_tts [$ident!] $($($args)*)?) $(; $($statement)? wtflip!($($tail)*))?
+    };
     ($lit:literal) => { // literal
         $lit
     };
     (# $ident:ident) => { // identifier
         $ident
     };
-    (@internal_build_expr[$($tokens:tt)*] [$($buffer:tt)*] ; $($tail:tt)*) => {
+    (@internal_build_expr [$($tokens:tt)*] [$($buffer:tt)*] ; $($tail:tt)*) => {
         // This accumulator puts the already assembled `$tokens` buffer next to the now completed expression `$buffer`.
         // This results in a complete variable declaration. It carries the remaining tokens `$tail` and passes them
         // to the macro again (TT munching).
         $($tokens)* wtflip!($($buffer)*);
         wtflip!($($tail)*);
     };
-    (@internal_build_expr[$($tokens:tt)*] [$($buffer:tt)*] $x:tt $($tail:tt)*) => {
+    (@internal_build_expr [$($tokens:tt)*] [$($buffer:tt)*] $x:tt $($tail:tt)*) => {
         // This accumulator receives a buffer of tokens that is the part until the `=` sign,
         //`$x` and `$tail` are the expression tokens, depending on `$x` being `;` it calls the accumulator above.
         // If `$x` is not `;` `$x` will simply be added to the (expression) `$buffer`.
-        wtflip!(@internal_build_expr[$($tokens)*] [$($buffer)* $x] $($tail)*);
+        wtflip!(@internal_build_expr [$($tokens)*] [$($buffer)* $x] $($tail)*);
     };
-    (@ $ident:ident $(($($args:tt)*))? $(; $(@$($_:tt)* $statement:tt)? $($tail:tt)*)?) => {
-        wtflip!(@split_tts [$ident!] $($($args)*)?) $(; $($statement)? wtflip!($($tail)*))?
+    (@internal_return_accumulator [$($buffer:tt)*] ; $($tail:tt)*) => {
+        return wtflip!($($buffer)*);
+        wtflip!($($tail)*);
     };
+    (@internal_return_accumulator [$($buffer:tt)*] $x:tt $($tail:tt)*) => (wtflip!(
+        @internal_return_accumulator [$($buffer)* $x] $($tail)*
+    ));
     (@split_tts [$($wrap:tt)*] $($input:tt)*) => (wtflip!(@internal_split_tts
         [$($wrap)*]
         []
@@ -79,5 +89,6 @@ macro_rules! wtflip {
         $out
         [$($rest)*]
     ));
+    ({$($tokens:tt)*}) => { $($tokens)* };
     () => {};
 }
