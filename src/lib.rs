@@ -40,7 +40,44 @@ macro_rules! wtflip {
         // If `$x` is not `;` `$x` will simply be added to the (expression) `$buffer`.
         wtflip!(@internal_build_expr[$($tokens)*] [$($buffer)* $x] $($tail)*);
     };
-    () => { // Finished TT munching.
-        //
+    (@ $ident:ident $(($($args:tt)*))? $(; $(@$($_:tt)* $statement:tt)? $($tail:tt)*)?) => {
+        wtflip!(@split_tts [$ident!] $($($args)*)?) $(; $($statement)? wtflip!($($tail)*))?
     };
+    (@split_tts [$($wrap:tt)*] $($input:tt)*) => (wtflip!(@internal_split_tts
+        [$($wrap)*]
+        []
+        []
+        [$($input)*]
+    ));
+    (@internal_split_tts
+        [$($wrap:tt)*]
+        []
+        [$([ $($out:tt)* ])*]
+        []
+    ) => {
+        $($wrap)*($(wtflip!($($out)*),)*)
+    };
+    (@internal_split_tts
+        [$($wrap:tt)*]
+        [$($current:tt)*]
+        [$($out:tt)*]
+        [$(, $($rest:tt)*)?]
+    ) => (wtflip!(@internal_split_tts
+        [$($wrap)*]
+        []
+        [$($out)* [$($current)*]]
+        [$($($rest)*)?]
+    ));
+    (@internal_split_tts
+        [$($wrap:tt)*]
+        [$($current:tt)*]
+        $out:tt
+        [$not_a_comma:tt $($rest:tt)*]
+    ) => (wtflip!(@internal_split_tts
+        [$($wrap)*]
+        [$($current)* $not_a_comma]
+        $out
+        [$($rest)*]
+    ));
+    () => {};
 }
