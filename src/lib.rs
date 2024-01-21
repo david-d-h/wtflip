@@ -6,25 +6,13 @@ macro_rules! wtflip {
     (# $ident:ident $(: $(@$($_:tt)* $declare:tt)?)?= $($expr:tt)+) => { // variable declaration or assignment
         wtflip!(@internal_build_expr [$($($declare)? #[allow(unused_mut)] let mut)? $ident =] [] $($expr)+);
     };
-    (
-        if ($($cond:tt)*) { $($block:tt)* } // if statement
-        $(elseif ($($elif_cond:tt)*) { $($elif_block:tt)* })* // many elif statements
-        else { $($else_block:tt)* } // else statement
-        $($tail:tt)* // tail
-    ) => { // if, else and (many) elif statements
-        if wtflip!($($cond)*) { wtflip!($($block)*); }
-        $(else if ($elif_cond) { wtflip!($($elif_block)*); })*
-        else { wtflip!($($else_block)*) }
-        wtflip!($($tail)*);
-    };
-    (
-        if ($($cond:tt)*) { $($block:tt)* } // if statement
-        $($tail:tt)* // tail
-    ) => { // if statement
-        if wtflip!($($cond)*) { wtflip!($($block)*); }
-        wtflip!($($tail)*);
-    };
-    (@ $(:: $(@$($_:tt)? $prefix:tt)?)? $ident:ident $(:: $path:ident)* $(($($args:tt)*))? $(; $(@$($__:tt)* $statement:tt)? $($tail:tt)*)?) => { // macro invocation
+    (if ($($cond:tt)*) { $($block:tt)* } $($tail:tt)*) => (wtflip!( // if, many optional elif and optional else statement
+        @internal_conditional_clause_accumulator [if wtflip!($($cond)*) { wtflip!($($block)*); }] $($tail)*)
+    );
+    ( // macro invocation
+        @ $(:: $(@$($_:tt)? $prefix:tt)?)? $ident:ident $(:: $path:ident)* $(($($args:tt)*))? // get the macro and raw args
+        $(; $(@$($__:tt)* $statement:tt)? $($tail:tt)*)? // determine if it's a statement
+    ) => {
         wtflip!(@split_tts [$($($prefix)? ::)? $ident $(:: $path)*!] $($($args)*)?) $(; $($statement)? wtflip!($($tail)*))?
     };
     ($lit:literal) => { // literal
@@ -53,6 +41,18 @@ macro_rules! wtflip {
     (@internal_return_accumulator [$($buffer:tt)*] $x:tt $($tail:tt)*) => (wtflip!(
         @internal_return_accumulator [$($buffer)* $x] $($tail)*
     ));
+    (@internal_conditional_clause_accumulator [$($tokens:tt)*] else if ($($cond:tt)*) { $($block:tt)* } $($tail:tt)*) => (wtflip!(
+        @internal_conditional_clause_accumulator [$($tokens)*
+            else if wtflip!($($cond)*) { wtflip!($($block)*) }
+        ] $($tail)*
+    ));
+    (@internal_conditional_clause_accumulator [$($tokens:tt)*] else { $($block:tt)* } $($tail:tt)*) => {
+        $($tokens)* else { wtflip!($($block)*); }
+        wtflip!($($tail)*);
+    };
+    (@internal_conditional_clause_accumulator [$($tokens:tt)*] $($tail:tt)*) => {
+        $($tokens)* wtflip!($($tail)*);
+    };
     (@split_tts [$($wrap:tt)*] $($input:tt)*) => (wtflip!(@internal_split_tts
         [$($wrap)*]
         []
