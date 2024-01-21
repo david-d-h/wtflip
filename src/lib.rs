@@ -24,8 +24,8 @@ macro_rules! wtflip {
         if wtflip!($($cond)*) { wtflip!($($block)*); }
         wtflip!($($tail)*);
     };
-    (@ $ident:ident $(($($args:tt)*))? $(; $(@$($_:tt)* $statement:tt)? $($tail:tt)*)?) => { // macro invocation
-        wtflip!(@split_tts [$ident!] $($($args)*)?) $(; $($statement)? wtflip!($($tail)*))?
+    (@ $(:: $(@$($_:tt)? $prefix:tt)?)? $ident:ident $(:: $path:ident)* $(($($args:tt)*))? $(; $(@$($__:tt)* $statement:tt)? $($tail:tt)*)?) => { // macro invocation
+        wtflip!(@split_tts [$($($prefix)? ::)? $ident $(:: $path)*!] $($($args)*)?) $(; $($statement)? wtflip!($($tail)*))?
     };
     ($lit:literal) => { // literal
         $lit
