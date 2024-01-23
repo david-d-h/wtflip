@@ -32,6 +32,11 @@ macro_rules! wtflip {
         @as_expr $lit:literal $($tail:tt)*
     ) => (wtflip!(@callback [$($cb)*] [$($args)* [$lit]] $($tail)*));
 
+    /* The compat layer but in expression position. */
+    (@callback [$($cb:tt)*] [$($args:tt)*]
+        @as_expr @{ $($tokens:tt)* } $($tail:tt)*
+    ) => (wtflip!(@callback [$($cb)*] [$($args)* [{ $($tokens)* }]]));
+
     /* Convert empty callback arguments stack to an invocation of the callback with the now processed arguments */
     (@callback [$($cb:tt)*] [$([$($arg:tt)*])*]) => ($($cb)*($($($arg)*),*));
 
@@ -40,14 +45,17 @@ macro_rules! wtflip {
         $($tokens)* wtflip!(@as_expr $($expr)*);
         wtflip!($($tail)*);
     };
+
     (@as_expr_assign [$($tokens:tt)*] [$($buffer:tt)*] $append:tt $($expr:tt)*) => (wtflip!(
         @as_expr_assign [$($tokens)*] [$($buffer)* $append] $($expr)*
     ));
+
     /*
         A compatibility layer.
         Allows for writing Rust in the wtflip invocation.
     */
-    ({ $($compat:tt)* }) => ($($compat)*);
+    (@{ $($compat:tt)* }) => ($($compat)*);
+
     () => {};
 }
 
