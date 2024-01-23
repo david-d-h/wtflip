@@ -54,7 +54,10 @@ macro_rules! wtflip {
         A compatibility layer.
         Allows for writing Rust in the wtflip invocation.
     */
-    (@{ $($compat:tt)* }) => ($($compat)*);
+    (@{ $($compat:tt)* }; $($tail:tt)*) => {
+        $($compat)*
+        wtflip!($($tail)*);
+    };
 
     () => {};
 }
