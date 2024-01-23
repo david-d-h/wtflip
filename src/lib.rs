@@ -1,94 +1,89 @@
 #[macro_export]
 macro_rules! wtflip {
-    (return $($tail:tt)*) => (wtflip!( // return statement
-        @internal_return_accumulator [] $($tail)*
+    /* Mutable declaration */
+    (mut $ident:ident := $($expr:tt)+) => (wtflip!(
+        @as_expr_assign [let mut $ident =] [] $($expr)+
     ));
-    (# $ident:ident $(: $(@$($_:tt)* $declare:tt)?)?= $($expr:tt)+) => { // variable declaration or assignment
-        wtflip!(@internal_build_expr [$($($declare)? #[allow(unused_mut)] let mut)? $ident =] [] $($expr)+);
-    };
-    (if ($($cond:tt)*) { $($block:tt)* } $($tail:tt)*) => (wtflip!( // if, many optional elif and optional else statement
-        @internal_conditional_clause_accumulator [if wtflip!($($cond)*) { wtflip!($($block)*); }] $($tail)*)
+
+    /* Assignment or immutable declaration. */
+    ($ident:ident $(: $(@$($_:tt)* $declaration:tt)?)?= $($expr:tt)+) => (wtflip!(
+        @as_expr_assign [$($($declaration)? let)? $ident =] [] $($expr)+
+    ));
+
+    /*
+        Macro invocation.
+        The macro invocation can't be used in callback parsers because it itself expands a macro.
+     */
+    (@as_expr @ $(:: $(@$($_:tt)* $prefixed:tt)?)? $ident:ident $(:: $path:ident)* $(($($args:tt)*))?) => (
+        $crate::args_splitter!(
+            [$($($prefixed)? ::)? $ident $(:: $path)*!]
+            [$crate::wtflip!]
+            []
+            []
+            [$($($args)*)?]
+        );
     );
-    ( // macro invocation
-        @ $(:: $(@$($_:tt)? $prefix:tt)?)? $ident:ident $(:: $path:ident)* $(($($args:tt)*))? // get the macro and raw args
-        $(; $(@$($__:tt)* $statement:tt)? $($tail:tt)*)? // determine if it's a statement
-    ) => {
-        wtflip!(@split_tts [$($($prefix)? ::)? $ident $(:: $path)*!] $($($args)*)?) $(; $($statement)? wtflip!($($tail)*))?
-    };
-    ($lit:literal) => { // literal
-        $lit
-    };
-    (# $ident:ident) => { // identifier
-        $ident
-    };
-    (@internal_build_expr [$($tokens:tt)*] [$($buffer:tt)*] ; $($tail:tt)*) => {
-        // This accumulator puts the already assembled `$tokens` buffer next to the now completed expression `$buffer`.
-        // This results in a complete variable declaration. It carries the remaining tokens `$tail` and passes them
-        // to the macro again (TT munching).
-        $($tokens)* wtflip!($($buffer)*);
+
+    /* Callback helper that turns @as_expr into a proper @callback invocation */
+    (@as_expr $($tokens:tt)*) => (wtflip!(@callback [] [] @as_expr $($tokens)*));
+
+    /* @as_expr $literal callback */
+    (@callback [$($cb:tt)*] [$($args:tt)*]
+        @as_expr $lit:literal $($tail:tt)*
+    ) => (wtflip!(@callback [$($cb)*] [$($args)* [$lit]] $($tail)*));
+
+    /* Convert empty callback arguments stack to an invocation of the callback with the now processed arguments */
+    (@callback [$($cb:tt)*] [$([$($arg:tt)*])*]) => ($($cb)*($($($arg)*),*));
+
+    /* Assignment (expression) accumulator */
+    (@as_expr_assign [$($tokens:tt)*] [$($expr:tt)*] ; $($tail:tt)*) => {
+        $($tokens)* wtflip!(@as_expr $($expr)*);
         wtflip!($($tail)*);
     };
-    (@internal_build_expr [$($tokens:tt)*] [$($buffer:tt)*] $x:tt $($tail:tt)*) => {
-        // This accumulator receives a buffer of tokens that is the part until the `=` sign,
-        //`$x` and `$tail` are the expression tokens, depending on `$x` being `;` it calls the accumulator above.
-        // If `$x` is not `;` `$x` will simply be added to the (expression) `$buffer`.
-        wtflip!(@internal_build_expr [$($tokens)*] [$($buffer)* $x] $($tail)*);
-    };
-    (@internal_return_accumulator [$($buffer:tt)*] ; $($tail:tt)*) => {
-        return wtflip!($($buffer)*);
-        wtflip!($($tail)*);
-    };
-    (@internal_return_accumulator [$($buffer:tt)*] $x:tt $($tail:tt)*) => (wtflip!(
-        @internal_return_accumulator [$($buffer)* $x] $($tail)*
+    (@as_expr_assign [$($tokens:tt)*] [$($buffer:tt)*] $append:tt $($expr:tt)*) => (wtflip!(
+        @as_expr_assign [$($tokens)*] [$($buffer)* $append] $($expr)*
     ));
-    (@internal_conditional_clause_accumulator [$($tokens:tt)*] else if ($($cond:tt)*) { $($block:tt)* } $($tail:tt)*) => (wtflip!(
-        @internal_conditional_clause_accumulator [$($tokens)*
-            else if wtflip!($($cond)*) { wtflip!($($block)*) }
-        ] $($tail)*
-    ));
-    (@internal_conditional_clause_accumulator [$($tokens:tt)*] else { $($block:tt)* } $($tail:tt)*) => {
-        $($tokens)* else { wtflip!($($block)*); }
-        wtflip!($($tail)*);
-    };
-    (@internal_conditional_clause_accumulator [$($tokens:tt)*] $($tail:tt)*) => {
-        $($tokens)* wtflip!($($tail)*);
-    };
-    (@split_tts [$($wrap:tt)*] $($input:tt)*) => (wtflip!(@internal_split_tts
-        [$($wrap)*]
-        []
-        []
-        [$($input)*]
-    ));
-    (@internal_split_tts
+    /*
+        A compatibility layer.
+        Allows for writing Rust in the wtflip invocation.
+    */
+    ({ $($compat:tt)* }) => ($($compat)*);
+    () => {};
+}
+
+#[macro_export]
+macro_rules! args_splitter {
+    (
         [$($wrap:tt)*]
+        [$($processor:tt)*]
         []
         [$([ $($out:tt)* ])*]
         []
-    ) => {
-        $($wrap)*($(wtflip!($($out)*),)*)
-    };
-    (@internal_split_tts
+    ) => ($($processor)*(@callback [$($wrap)*] [] $(@as_expr $($out)*)*));
+    (
         [$($wrap:tt)*]
+        [$($processor:tt)*]
         [$($current:tt)*]
         [$($out:tt)*]
         [$(, $($rest:tt)*)?]
-    ) => (wtflip!(@internal_split_tts
+    ) => ($crate::args_splitter!(
         [$($wrap)*]
+        [$($processor)*]
         []
         [$($out)* [$($current)*]]
         [$($($rest)*)?]
     ));
-    (@internal_split_tts
+    (
         [$($wrap:tt)*]
+        [$($processor:tt)*]
         [$($current:tt)*]
         $out:tt
-        [$not_a_comma:tt $($rest:tt)*]
-    ) => (wtflip!(@internal_split_tts
+        [$no_comma:tt $($rest:tt)*]
+    ) => ($crate::args_splitter!(
         [$($wrap)*]
-        [$($current)* $not_a_comma]
+        [$($processor)*]
+        [$($current)* $no_comma]
         $out
         [$($rest)*]
     ));
-    ({$($tokens:tt)*}) => { $($tokens)* };
-    () => {};
 }
