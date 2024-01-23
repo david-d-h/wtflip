@@ -1,19 +1,19 @@
 #[macro_export]
 macro_rules! wtflip {
-    /* Mutable declaration */
-    (mut $ident:ident := $($expr:tt)+) => (wtflip!(
-        @as_expr_assign [let mut $ident =] [] $($expr)+
-    ));
+    /* Mutable declaration. */
+    (@as_statement mut $ident:ident := $($expr:tt)+) => {
+        let mut $ident = wtflip!(@as_expr $($expr)+);
+    };
 
     /* Assignment or immutable declaration. */
-    ($ident:ident $(: $(@$($_:tt)* $declaration:tt)?)?= $($expr:tt)+) => (wtflip!(
-        @as_expr_assign [$($($declaration)? let)? $ident =] [] $($expr)+
-    ));
+    (@as_statement $ident:ident $(: $(@$($_:tt)* $declaration:tt)?)?= $($expr:tt)+) => {
+        $($($declaration)? let)? $ident = wtflip!(@as_expr $($expr)+);
+    };
 
-    /*
-        Macro invocation.
-        The macro invocation can't be used in callback parsers because it itself expands a macro.
-     */
+    /* A compatibility layer. Allows for writing Rust in the wtflip invocation. */
+    (@as_statement @{ $($compat:tt)* }) => ($($compat)*);
+
+    /* Macro invocation. The macro invocation can't be used in callback parsers because it itself expands a macro. */
     (@as_expr @ $(:: $(@$($_:tt)* $prefixed:tt)?)? $ident:ident $(:: $path:ident)* $(($($args:tt)*))?) => (
         $crate::args_splitter!(
             [$($($prefixed)? ::)? $ident $(:: $path)*!]
@@ -24,10 +24,10 @@ macro_rules! wtflip {
         );
     );
 
-    /* Callback helper that turns @as_expr into a proper @callback invocation */
+    /* Callback helper that turns @as_expr into a proper @callback invocation. */
     (@as_expr $($tokens:tt)*) => (wtflip!(@callback [] [] @as_expr $($tokens)*));
 
-    /* @as_expr $literal callback */
+    /* @as_expr $literal callback. */
     (@callback [$($cb:tt)*] [$($args:tt)*]
         @as_expr $lit:literal $($tail:tt)*
     ) => (wtflip!(@callback [$($cb)*] [$($args)* [$lit]] $($tail)*));
@@ -37,29 +37,26 @@ macro_rules! wtflip {
         @as_expr @{ $($tokens:tt)* } $($tail:tt)*
     ) => (wtflip!(@callback [$($cb)*] [$($args)* [{ $($tokens)* }]]));
 
-    /* Convert empty callback arguments stack to an invocation of the callback with the now processed arguments */
+    /* Convert empty callback arguments stack to an invocation of the callback with the now processed arguments. */
     (@callback [$($cb:tt)*] [$([$($arg:tt)*])*]) => ($($cb)*($($($arg)*),*));
 
-    /* Assignment (expression) accumulator */
-    (@as_expr_assign [$($tokens:tt)*] [$($expr:tt)*] ; $($tail:tt)*) => {
-        $($tokens)* wtflip!(@as_expr $($expr)*);
+    /* The end of a statement has been reached, process the buffer as a statement. */
+    (@statement_accumulator [$($buffer:tt)*] ; $($tail:tt)*) => {
+        wtflip!(@as_statement $($buffer)*);
         wtflip!($($tail)*);
     };
 
-    (@as_expr_assign [$($tokens:tt)*] [$($buffer:tt)*] $append:tt $($expr:tt)*) => (wtflip!(
-        @as_expr_assign [$($tokens)*] [$($buffer)* $append] $($expr)*
+    /* Append all non semicolon tokens to the buffer which will be processed as a statement later. */
+    (@statement_accumulator [$($buffer:tt)*] $token:tt $($tail:tt)*) => (wtflip!(
+        @statement_accumulator [$($buffer)* $token] $($tail)*
     ));
 
-    /*
-        A compatibility layer.
-        Allows for writing Rust in the wtflip invocation.
-    */
-    (@{ $($compat:tt)* }; $($tail:tt)*) => {
-        $($compat)*
-        wtflip!($($tail)*);
-    };
-
     () => {};
+
+    /* Just passes a non empty token tree into a statement accumulator. */
+    ($($tokens:tt)+) => (wtflip!(
+        @statement_accumulator [] $($tokens)*
+    ));
 }
 
 #[macro_export]
