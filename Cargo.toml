@@ -1,6 +1,6 @@
 [package]
 name = "wtflip"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 authors = ["David <75451291+dulkoss@users.noreply.github.com>"]
 description = "A language in a Rust macro... or something."
