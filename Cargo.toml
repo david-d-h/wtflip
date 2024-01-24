@@ -1,10 +1,10 @@
 [package]
 name = "wtflip"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
-authors = ["David <75451291+dulkoss@users.noreply.github.com>"]
+authors = ["David <75451291+daviddenhaan@users.noreply.github.com>"]
 description = "A language in a Rust macro... or something."
-license-file = "LICENSE"
+license = "MIT"
 repository = "https://github.com/daviddenhaan/wtflip"
 homepage = "https://github.com/daviddenhaan/wtflip"
-keywords = ["macro", "cursed", "bad"]
+keywords = ["macro", "cursed"]

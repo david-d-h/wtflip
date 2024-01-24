@@ -51,9 +51,10 @@ macro_rules! wtflip {
         @statement_accumulator [$($buffer)* $token] $($tail)*
     ));
 
-    () => {};
+    /* Finished munching the token tree */
+    () => ();
 
-    /* Just passes a non empty token tree into a statement accumulator. */
+    /* Just passes a non-empty token tree into a statement accumulator. */
     ($($tokens:tt)+) => (wtflip!(
         @statement_accumulator [] $($tokens)*
     ));
