@@ -1,10 +1,10 @@
-use crate::{common, expression, punctuated, statement};
+use crate::{common, expression, punctuated};
 
 #[derive(Debug, Clone)]
 pub struct Function {
     pub name: common::Identifier,
     pub args: punctuated::Punctuated<common::Identifier>,
-    pub body: punctuated::Punctuated<statement::Statement>,
+    pub body: common::Block,
 }
 
 #[derive(Debug, Clone)]
@@ -27,7 +27,7 @@ macro_rules! Item {
         $crate::item::Item::Fn($crate::item::Function {
             name: $crate::Identifier!($name),
             args: $crate::Punctuated!(match , use $crate::Expr: $($arguments)*),
-            body: $crate::Punctuated!(match ; use $crate::Statement: $($body)*),
+            body: $crate::Block!($($body)*),
         })
     });
     (fn $name:ident ($($arguments:tt)*) = $($body:tt)*) => ({
