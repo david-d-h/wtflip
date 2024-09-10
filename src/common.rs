@@ -1,7 +1,7 @@
 use crate::{punctuated, statement};
 
 // IDENTIFIERS
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Identifier(pub &'static str);
 
 #[macro_export]
@@ -38,7 +38,7 @@ macro_rules! Literal {($literal:literal) => ({
 })}
 
 // BLOCKS
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Block {
     pub statements: punctuated::Punctuated<statement::Statement>,
 }

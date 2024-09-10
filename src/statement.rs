@@ -1,19 +1,19 @@
 use crate::{common, expression};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct VarDeclaration {
     pub name: common::Identifier,
     pub mutable: bool,
     pub value: expression::Expression,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct VarAssignment {
     pub name: common::Identifier,
     pub value: expression::Expression,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Statement {
     VarDeclaration(VarDeclaration),
     VarAssignment(VarAssignment),
@@ -28,7 +28,7 @@ macro_rules! Statement {
             $crate::statement::VarDeclaration {
                 name: $crate::Identifier!($name),
                 mutable: false | $($($is_mut)? true)?,
-                value: $crate::Expr!($($expr)*),
+                value: $crate::Expression!($($expr)*),
             },
         )
     });
@@ -36,11 +36,11 @@ macro_rules! Statement {
         $crate::statement::Statement::VarAssignment(
             $crate::statement::VarAssignment {
                 name: $crate::Identifier!($name),
-                value: $crate::Expr!($($expr)*),
+                value: $crate::Expression!($($expr)*),
             },
         )
     });
     ($($tokens:tt)*) => ({
-        $crate::statement::Statement::Expr($crate::Expr!($($tokens)*))
+        $crate::statement::Statement::Expr($crate::Expression!($($tokens)*))
     });
 }

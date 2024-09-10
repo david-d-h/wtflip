@@ -76,10 +76,22 @@ impl Punctuation {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Punctuated<T> {
     pub punctuation: Punctuation,
     pub items: Vec<T>,
+}
+
+impl<T> Punctuated<T> {
+    pub fn from_iter<I>(iter: I, punctuation: Punctuation) -> Self
+    where
+        I: IntoIterator<Item = T>,
+    {
+        Self {
+            punctuation,
+            items: iter.into_iter().collect(),
+        }
+    }
 }
 
 #[macro_export]

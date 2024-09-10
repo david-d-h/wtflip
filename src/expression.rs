@@ -1,7 +1,14 @@
-use crate::common;
+use crate::{punctuated, common, statement};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
+pub struct Closure {
+    pub arguments: punctuated::Punctuated<common::Identifier>,
+    pub body: Expression,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
+    Closure(Box<Closure>),
     Literal(common::Literal),
     Value(common::Identifier),
     Block(common::Block),
@@ -9,7 +16,13 @@ pub enum Expression {
 
 #[macro_export]
 #[allow(non_snake_case)]
-macro_rules! Expr {
+macro_rules! Expression {
+    (fn($($arguments:tt)*) -> $($body:tt)*) => ({
+        $crate::expression::Expression::Closure(Box::new($crate::expression::Closure {
+            arguments: $crate::Punctuated!(match , use $crate::Identifier: $($arguments)*),
+            body: $crate::Expression!($($body)*),
+        }))
+    });
     ($ident:ident) => (const {
         $crate::expression::Expression::Value($crate::Identifier!($ident))
     });
@@ -19,4 +32,17 @@ macro_rules! Expr {
     ({ $($block:tt)* }) => ({
         $crate::expression::Expression::Block($crate::Block!($($block)*))
     });
+}
+
+#[test]
+fn test() {
+    assert_eq!(
+        Expression!(fn(a) -> ":3"),
+        Expression::Closure(Box::new(Closure {
+            arguments: punctuated::Punctuated::from_iter(
+                [common::Identifier("a")], punctuated::Punctuation::Comma,
+            ),
+            body: Expression::Literal(common::Literal::String(":3")),
+        })),
+    );
 }

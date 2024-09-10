@@ -26,7 +26,7 @@ macro_rules! Item {
     (fn $name:ident ($($arguments:tt)*) { $($body:tt)* }) => ({
         $crate::item::Item::Fn($crate::item::Function {
             name: $crate::Identifier!($name),
-            args: $crate::Punctuated!(match , use $crate::Expr: $($arguments)*),
+            args: $crate::Punctuated!(match , use $crate::Expression: $($arguments)*),
             body: $crate::Block!($($body)*),
         })
     });
@@ -34,7 +34,7 @@ macro_rules! Item {
         $crate::item::Item::ShortFn($crate::item::ShortFunction {
             name: $crate::Identifier!($name),
             args: $crate::Punctuated!(match , use $crate::Identifier: $($arguments)*),
-            body: $crate::Terminated!(match [;] use $crate::Expr: $($body)*),
+            body: $crate::Terminated!(match [;] use $crate::Expression: $($body)*),
         })
     });
 }
