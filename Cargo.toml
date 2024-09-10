@@ -2,6 +2,8 @@
 name = "wtflip"
 version = "0.1.0"
 edition = "2021"
+authors = ["David d.H. <75451291+david-d-h@users.noreply.github.com>"]
+license = "MIT"
 
 [dependencies]
 defile = "0.2.1"
