@@ -4,13 +4,13 @@ use crate::{common, expression};
 pub struct VarDeclaration {
     pub name: common::Identifier,
     pub mutable: bool,
-    pub value: Box<expression::Expression>,
+    pub value: expression::Expression,
 }
 
 #[derive(Debug, Clone)]
 pub struct VarAssignment {
     pub name: common::Identifier,
-    pub value: Box<expression::Expression>,
+    pub value: expression::Expression,
 }
 
 #[derive(Debug, Clone)]
@@ -28,7 +28,7 @@ macro_rules! Statement {
             $crate::statement::VarDeclaration {
                 name: $crate::Identifier!($name),
                 mutable: false | $($($is_mut)? true)?,
-                value: ::std::boxed::Box::new($crate::Expr!($($expr)*)),
+                value: $crate::Expr!($($expr)*),
             },
         )
     });
@@ -36,7 +36,7 @@ macro_rules! Statement {
         $crate::statement::Statement::VarAssignment(
             $crate::statement::VarAssignment {
                 name: $crate::Identifier!($name),
-                value: ::std::boxed::Box::new($crate::Expr!($($expr)*)),
+                value: $crate::Expr!($($expr)*),
             },
         )
     });
