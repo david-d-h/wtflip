@@ -4,6 +4,7 @@ use crate::common;
 pub enum Expression {
     Literal(common::Literal),
     Value(common::Identifier),
+    Block(common::Block),
 }
 
 #[macro_export]
@@ -14,5 +15,8 @@ macro_rules! Expr {
     });
     ($literal:literal) => ({
         $crate::expression::Expression::Literal($crate::Literal!($literal))
+    });
+    ({ $($block:tt)* }) => ({
+        $crate::expression::Expression::Block($crate::Block!($($block)*))
     });
 }

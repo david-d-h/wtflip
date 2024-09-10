@@ -24,17 +24,21 @@ pub enum Statement {
 #[allow(non_snake_case)]
 macro_rules! Statement {
     ($name:ident $(mut $(@$($_:tt)* $is_mut:tt)?)? := $($expr:tt)*) => ({
-        $crate::statement::Statement::VarDeclaration(VarDeclaration {
-            name: $crate::Identifier!($name),
-            mutable: false | $($($is_mut)? true)?,
-            value: ::std::boxed::Box::new($crate::Expr!($($expr)*)),
-        })
+        $crate::statement::Statement::VarDeclaration(
+            $crate::statement::VarDeclaration {
+                name: $crate::Identifier!($name),
+                mutable: false | $($($is_mut)? true)?,
+                value: ::std::boxed::Box::new($crate::Expr!($($expr)*)),
+            },
+        )
     });
     ($name:ident = $($expr:tt)*) => ({
-        $crate::statement::Statement::VarAssignment(VarAssignment {
-            name: $crate::Identifier!($name),
-            value: ::std::boxed::Box::new($crate::Expr!($($expr)*)),
-        })
+        $crate::statement::Statement::VarAssignment(
+            $crate::statement::VarAssignment {
+                name: $crate::Identifier!($name),
+                value: ::std::boxed::Box::new($crate::Expr!($($expr)*)),
+            },
+        )
     });
     ($($tokens:tt)*) => ({
         $crate::statement::Statement::Expr($crate::Expr!($($tokens)*))
