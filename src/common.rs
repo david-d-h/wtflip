@@ -1,5 +1,3 @@
-use crate::{punctuated, statement};
-
 // IDENTIFIERS
 #[derive(Debug, Clone, PartialEq)]
 pub struct Identifier(pub &'static str);
@@ -35,18 +33,4 @@ def_literal! {
 #[allow(non_snake_case)]
 macro_rules! Literal {($literal:literal) => ({
     ::core::convert::Into::<$crate::common::Literal>::into($literal)
-})}
-
-// BLOCKS
-#[derive(Debug, Clone, PartialEq)]
-pub struct Block {
-    pub statements: punctuated::Punctuated<statement::Statement>,
-}
-
-#[macro_export]
-#[allow(non_snake_case)]
-macro_rules! Block {($($body:tt)*) => ({
-    $crate::common::Block {
-        statements: $crate::Punctuated!(match ; use $crate::Statement: $($body)*),
-    }
 })}

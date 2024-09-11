@@ -6,6 +6,7 @@ macro_rules! export_local {($($ident:ident::*),* $(,)?) => {$(
 export_local![
     common::*,
     expression::*,
+    item::*,
     statement::*,
     util::*,
 ];
@@ -21,11 +22,18 @@ macro_rules! construct_ast {
     ($inner:ident $tt:tt) => ({
         $crate::testing::$inner!($tt)
     });
-    ($inner:ident :: $variant:ident $tt:tt) => ({
+    ($inner:ident :: $variant:ident $tt:tt ) => ({
         $crate::testing::$inner!($variant $tt)
     });
+    // tokens may be received in a callback format
+    ([$($tokens:tt)*] $($parse:tt)*) => ($crate::testing::construct_ast!(
+        @passthrough $($tokens)* ( $($parse)* )
+    ));
+    (@passthrough $inner:ident ( $($tokens:tt)* )) => (
+        $crate::testing::$inner!($($tokens)*)
+    );
     ($inner:ident) => ({
-        $crate::testing::$inner!()
+        $crate::testing::$inner;
     });
     // for IDE analysis purposes we allow not having a tt following the
     // inner parser, handling this is up to individual parser implementation.

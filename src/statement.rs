@@ -55,9 +55,9 @@ mod tests {
 
         testing::test_ast! { ast ->
             Statement::VarDeclaration {
-                name: @Identifier(hallo),
+                name: #Identifier(hallo),
                 mutable: true,
-                value: @Expression::Literal(12.0),
+                value: #Expression::Literal(12.0),
             }
         }
     }
@@ -68,9 +68,9 @@ mod tests {
 
         testing::test_ast! { ast ->
             Statement::VarDeclaration {
-                name: @Identifier(byebye),
+                name: #Identifier(byebye),
                 mutable: false,
-                value: @Expression::Literal(":)"),
+                value: #Expression::Literal(":)"),
             }
         }
     }
@@ -81,8 +81,8 @@ mod tests {
 
         testing::test_ast! { ast ->
             Statement::VarAssignment {
-                name: @Identifier(byebye),
-                value: @Expression::Literal(":("),
+                name: #Identifier(byebye),
+                value: #Expression::Literal(":("),
             }
         }
     }

@@ -4,7 +4,7 @@ use crate::{common, expression, punctuated};
 pub struct Function {
     pub name: common::Identifier,
     pub args: punctuated::Punctuated<common::Identifier>,
-    pub body: common::Block,
+    pub body: expression::Block,
 }
 
 #[derive(Debug, Clone)]

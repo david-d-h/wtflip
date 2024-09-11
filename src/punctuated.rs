@@ -20,6 +20,29 @@ pub enum Punctuation {
     Pound, Dollar, Question, Tilde,
 }
 
+macro_rules! punctuation_from_char {
+    (+) => ($crate::punctuated::Punctuation::Plus);
+    (-) => ($crate::punctuated::Punctuation::Minus);
+    (*) => ($crate::punctuated::Punctuation::Star);
+    (/) => ($crate::punctuated::Punctuation::Slash);
+    (%) => ($crate::punctuated::Punctuation::Percent);
+    (^) => ($crate::punctuated::Punctuation::Power);
+    (!) => ($crate::punctuated::Punctuation::Bang);
+    (&) => ($crate::punctuated::Punctuation::Amp);
+    (|) => ($crate::punctuated::Punctuation::Pipe);
+    (<) => ($crate::punctuated::Punctuation::Lesser);
+    (>) => ($crate::punctuated::Punctuation::Greater);
+    (=) => ($crate::punctuated::Punctuation::Eq);
+    (:) => ($crate::punctuated::Punctuation::Colon);
+    (.) => ($crate::punctuated::Punctuation::Dot);
+    (,) => ($crate::punctuated::Punctuation::Comma);
+    (;) => ($crate::punctuated::Punctuation::Semicolon);
+    (#) => ($crate::punctuated::Punctuation::Pound);
+    // ($$) => ($crate::punctuated::Punctuation::Dollar); can't match on dollar sign
+    (?) => ($crate::punctuated::Punctuation::Question);
+    (~) => ($crate::punctuated::Punctuation::Tilde);
+} pub(crate) use punctuation_from_char;
+
 impl Punctuation {
     pub const fn from_char<const C: char>() -> Punctuation
     where
