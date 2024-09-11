@@ -17,7 +17,7 @@ pub struct VarAssignment {
 pub enum Statement {
     VarDeclaration(VarDeclaration),
     VarAssignment(VarAssignment),
-    Expr(expression::Expression),
+    Expression(expression::Expression),
 }
 
 #[macro_export]
@@ -27,7 +27,7 @@ macro_rules! Statement {
         $crate::statement::Statement::VarDeclaration(
             $crate::statement::VarDeclaration {
                 name: $crate::Identifier!($name),
-                mutable: false | $($($is_mut)? true)?,
+                mutable: false $($($is_mut)? | true)?,
                 value: $crate::Expression!($($expr)*),
             },
         )
@@ -41,6 +41,49 @@ macro_rules! Statement {
         )
     });
     ($($tokens:tt)*) => ({
-        $crate::statement::Statement::Expr($crate::Expression!($($tokens)*))
+        $crate::statement::Statement::Expression($crate::Expression!($($tokens)*))
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::testing;
+
+    #[test]
+    fn var_decl_mut() {
+        let ast = crate::Statement!(hallo mut := 12.0);
+
+        testing::test_ast! { ast ->
+            Statement::VarDeclaration {
+                name: @Identifier(hallo),
+                mutable: true,
+                value: @Expression::Literal(12.0),
+            }
+        }
+    }
+
+    #[test]
+    fn var_decl_immut() {
+        let ast = crate::Statement!(byebye := ":)");
+
+        testing::test_ast! { ast ->
+            Statement::VarDeclaration {
+                name: @Identifier(byebye),
+                mutable: false,
+                value: @Expression::Literal(":)"),
+            }
+        }
+    }
+
+    #[test]
+    fn var_assign() {
+        let ast = crate::Statement!(byebye = ":(");
+
+        testing::test_ast! { ast ->
+            Statement::VarAssignment {
+                name: @Identifier(byebye),
+                value: @Expression::Literal(":("),
+            }
+        }
+    }
 }

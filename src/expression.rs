@@ -10,8 +10,8 @@ pub struct Closure {
 pub enum Expression {
     Closure(Box<Closure>),
     Literal(common::Literal),
-    Value(common::Identifier),
-    Block(common::Block),
+    Identifier(common::Identifier),
+    Block(common::Block), // TODO: testing framework implementation
 }
 
 #[macro_export]
@@ -24,7 +24,7 @@ macro_rules! Expression {
         }))
     });
     ($ident:ident) => (const {
-        $crate::expression::Expression::Value($crate::Identifier!($ident))
+        $crate::expression::Expression::Identifier($crate::Identifier!($ident))
     });
     ($literal:literal) => ({
         $crate::expression::Expression::Literal($crate::Literal!($literal))

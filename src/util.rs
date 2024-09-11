@@ -1,5 +1,5 @@
 #[macro_export]
-macro_rules! segments {($callback:path where [$($match:tt)*] in $($tokens:tt)*) => ({
+macro_rules! segments {($callback:path $([$($carry:tt)*])? where [$($match:tt)*] in $($tokens:tt)*) => ({
     macro_rules! __segments_internal_parser {
         ([$$([$$($$segment:tt)*])*] [/* buffer is empty, skip */] [] $($match)* $$($$tail:tt)*) => (__segments_internal_parser!(
             [$$([$$($$segment)*])*] [] [_] $$($$tail)*
@@ -13,12 +13,9 @@ macro_rules! segments {($callback:path where [$($match:tt)*] in $($tokens:tt)*) 
         ([$$([$$($$segment:tt)*])*] [$$($$buffer:tt)*] [$$(_)?] $$tt:tt $$($$tail:tt)*) => (__segments_internal_parser!(
             [$$([$$($$segment)*])* ] [$$($$buffer)* $$tt] [] $$($$tail)*
         ));
-        ([$$([$$($$segment:tt)*])*] [$$($$buffer:tt)*] []) => ($crate::defile!({
-            $callback!($$([$$($$segment)*])* [$$($$buffer)*])
-        }));
-        ([$$([$$($$segment:tt)*])*] [$$($$buffer:tt)*] [$$(_)?] $($match)*) => (::core::compile_error!(
-            ::core::concat!("can not end with a segment splitter (", ::core::stringify!($($match)*), ")"),
-        ));
+        ([$$([$$($$segment:tt)*])*] [$$($$tt:tt $$(@$$($$_:tt)* $$has_buffer:tt)? $$($$buffer:tt)*)?] [$$(_)?]) => ({
+            $callback!($([$($carry)*])? $$([$$($$segment)*])* $$($$($$has_buffer)? [$$tt $$($$buffer)*])?)
+        });
     }
 
     __segments_internal_parser!([] [] [] $($tokens)*)
