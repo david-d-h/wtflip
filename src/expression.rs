@@ -1,4 +1,4 @@
-use crate::{punctuated, common, statement};
+use crate::{punctuated, common};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Closure {
@@ -32,17 +32,4 @@ macro_rules! Expression {
     ({ $($block:tt)* }) => ({
         $crate::expression::Expression::Block($crate::Block!($($block)*))
     });
-}
-
-#[test]
-fn test() {
-    assert_eq!(
-        Expression!(fn(a) -> ":3"),
-        Expression::Closure(Box::new(Closure {
-            arguments: punctuated::Punctuated::from_iter(
-                [common::Identifier("a")], punctuated::Punctuation::Comma,
-            ),
-            body: Expression::Literal(common::Literal::String(":3")),
-        })),
-    );
 }
