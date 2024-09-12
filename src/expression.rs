@@ -23,10 +23,9 @@ pub enum Expression {
 #[allow(non_snake_case)]
 macro_rules! Expression {
     (fn($($arguments:tt)*) -> $($body:tt)*) => ({
-        $crate::expression::Expression::Closure(Box::new($crate::expression::Closure {
-            arguments: $crate::Punctuated!(match , use $crate::Identifier: $($arguments)*),
-            body: $crate::Expression!($($body)*),
-        }))
+        $crate::expression::Expression::Closure(Box::new(
+            $crate::Closure!(fn($($arguments)*) -> $($body)*)
+        ))
     });
     ($ident:ident) => (const {
         $crate::expression::Expression::Identifier($crate::Identifier!($ident))
@@ -41,6 +40,15 @@ macro_rules! Expression {
 
 #[macro_export]
 #[allow(non_snake_case)]
+macro_rules! Closure {(fn($($arguments:tt)*) -> $($body:tt)*) => ({
+    $crate::expression::Closure {
+        arguments: $crate::Punctuated!(match , use $crate::Identifier: $($arguments)*),
+        body: $crate::Expression!($($body)*),
+    }
+})}
+
+#[macro_export]
+#[allow(non_snake_case)]
 macro_rules! Block {($($body:tt)*) => ({
     $crate::expression::Block {
         statements: $crate::Punctuated!(match ; use $crate::Statement: $($body)*),
@@ -50,6 +58,26 @@ macro_rules! Block {($($body:tt)*) => ({
 #[cfg(test)]
 mod tests {
     use crate::testing;
+
+    #[test]
+    fn closure_literal() {
+        trace_macros!(true);
+        let ast = crate::Expression!(fn (a, b, c) -> 12.0);
+        trace_macros!(false);
+
+        testing::test_ast! { ast ->
+            Expression::Closure(box fn (a, b, c) -> Literal(12.0))
+        }
+    }
+
+    #[test]
+    fn closure_block() {
+        let ast = crate::Expression!(fn (a, b) -> {});
+
+        testing::test_ast! { ast ->
+            Expression::Closure(box fn (a, b) -> Block {})
+        }
+    }
 
     #[test]
     fn literal() {

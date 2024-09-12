@@ -136,10 +136,10 @@ macro_rules! Punctuated {(match $char:tt use $item:path: $($tokens:tt)*) => ({
         ([$$([$$($$output:tt)*])*] [$$($$buffer:tt)*] $char $$($$tail:tt)*) => (__punctuated_internal_parser!(
             [$$([$$($$output)*])* [$item!($$($$buffer)*)]] [] $$($$tail)*
         ));
-        ([$$([$$($$output:tt)*]),*] [$$($$buffer:tt)*] $$tt:tt $$($$tail:tt)*) => (__punctuated_internal_parser!(
+        ([$$([$$($$output:tt)*])*] [$$($$buffer:tt)*] $$tt:tt $$($$tail:tt)*) => (__punctuated_internal_parser!(
             [$$([$$($$output)*])*] [$$($$buffer)* $$tt] $$($$tail)*
         ));
-        ([$$([$$($$output:tt)*])*] [$$($$tt:tt $$($$buffer:tt)*)?] $$(,)?) => ($crate::defile!({
+        ([$$([$$($$output:tt)*])*] [$$($$tt:tt $$($$buffer:tt)*)?] $$($char)?) => ($crate::defile!({
             $crate::punctuated::Punctuated::<_> {
                 punctuation: $crate::punctuated::Punctuation::from_char::<C>(),
                 items: ::std::vec::Vec::from([$$($$($$output)*,)* $$(@$item!($$tt $$($$buffer)*))?])

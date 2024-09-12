@@ -3,6 +3,7 @@
 #![feature(decl_macro)]
 #![feature(unsized_const_params)]
 #![feature(adt_const_params)]
+#![feature(trace_macros)]
 #![cfg_attr(test, allow(unused_macros, unused_imports))]
 #![allow(incomplete_features)]
 

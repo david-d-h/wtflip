@@ -1,20 +1,24 @@
 #[allow(unused_imports)]
 pub(crate) use crate::testing::common::{Literal, Identifier};
 
-// TODO
-// #[allow(non_snake_case)]
-// macro_rules! Closure {((fn($($arguments:tt)*) -> $($body:tt)+)) => (
-//     $crate::expression::Closure {
-//         arguments: $crate::punctuated::Punctuated::from_iter(
-//             $crate::segments!(
-//                 $crate::testing::__map[[$crate::testing::__grouped: ()] [[$crate::testing::Identifier]]]
-//                 where [,] in $($arguments)*
-//             ),
-//             $crate::punctuated::Punctuation::Comma,
-//         ),
-//         body: $crate::testing::construct_ast!([Expression] $($body)*),
-//     }
-// )} pub(crate) use Closure;
+#[allow(non_snake_case)]
+macro_rules! Closure {
+    ((fn($($arguments:tt)*) -> $($body:tt)+)) => (
+        $crate::expression::Closure {
+            arguments: $crate::punctuated::Punctuated::from_iter(
+                $crate::segments!(
+                    $crate::testing::__map[[$crate::testing::__grouped: ()] [[$crate::testing::Identifier]]]
+                    where [,] in $($arguments)*
+                ),
+                $crate::punctuated::Punctuation::Comma,
+            ),
+            body: $crate::testing::construct_ast!([Expression] $($body)*),
+        }
+    );
+    ((box $($tokens:tt)*)) => (
+        Box::new($crate::testing::Closure!(($($tokens)*)))
+    );
+} pub(crate) use Closure;
 
 #[allow(non_snake_case)]
 macro_rules! Block {({ $($body:tt)* }) => (
