@@ -3,7 +3,7 @@ pub(crate) use crate::testing::expression::Expression;
 #[allow(non_snake_case)]
 macro_rules! VarDeclaration {({ $($tokens:tt)* }) => (
     $crate::segments!(
-        $crate::testing::__construct_from_fields [$crate::statement::VarDeclaration]
+        $crate::testing::__construct_from_fields[$crate::statement::VarDeclaration]
         where [,] in $($tokens)*
     )
 )} pub(crate) use VarDeclaration;
@@ -11,10 +11,15 @@ macro_rules! VarDeclaration {({ $($tokens:tt)* }) => (
 #[allow(non_snake_case)]
 macro_rules! VarAssignment {({ $($tokens:tt)* }) => (
     $crate::segments!(
-        $crate::testing::__construct_from_fields [$crate::statement::VarAssignment]
+        $crate::testing::__construct_from_fields[$crate::statement::VarAssignment]
         where [,] in $($tokens)*
     )
 )} pub(crate) use VarAssignment;
+
+#[allow(non_snake_case)]
+macro_rules! Return {(($($tokens:tt)*)) => (
+    $crate::__optional!([$crate::testing::construct_ast[Expression]] $($tokens)*)
+)} pub(crate) use Return;
 
 #[allow(non_snake_case)]
 macro_rules! Statement {

@@ -7,7 +7,7 @@ macro_rules! Closure {
         $crate::expression::Closure {
             arguments: $crate::punctuated::Punctuated::from_iter(
                 $crate::segments!(
-                    $crate::testing::__map[[$crate::testing::__grouped: ()] [[$crate::testing::Identifier]]]
+                    $crate::__map[[$crate::testing::__grouped: ()] [[$crate::testing::Identifier]]]
                     where [,] in $($arguments)*
                 ),
                 $crate::punctuated::Punctuation::Comma,
@@ -25,7 +25,7 @@ macro_rules! Block {({ $($body:tt)* }) => (
     $crate::expression::Block {
         statements: $crate::punctuated::Punctuated::from_iter(
             $crate::segments!(
-                $crate::testing::__map [[$crate::testing::construct_ast] [Statement]]
+                $crate::__map [[$crate::testing::construct_ast] [Statement]]
                 where [;] in $($body)*
             ),
             $crate::punctuated::Punctuation::Semicolon,

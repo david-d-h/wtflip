@@ -14,21 +14,10 @@ macro_rules! __construct_from_fields {([$item:path] $([$field:ident: $($tokens:t
     __fields_internal_parser!([] $([$field: $($tokens)*])*)
 })} pub(crate) use __construct_from_fields;
 
-macro_rules! __map {([[$callback:path $(: $($args:tt)*)?] $([$($carry:tt)*])?] $([$($tokens:tt)*])*) => ({
-    macro_rules! __mapper {
-        ([$$($$output:tt)*] [$$($$item:tt)*] $$($$tail:tt)*) => (__mapper!(
-            [$$($$output)* [@$callback!($([$($carry)*])? $($($args)*)? $$($$item)*)]] $$($$tail)*
-        ));
-        ([$$([$$($$output:tt)*])*]) => ($crate::defile!([$$($$($$output)*),*]));
-    }
-
-    __mapper!([] $([$($tokens)*])*)
-})} pub(crate) use __map;
-
 macro_rules! __punctuated {(match $char:tt use $item:path: $($tokens:tt)*) => ({
     let punctuation = $crate::punctuated::punctuation_from_char!($char);
     $crate::punctuated::Punctuated::from_iter($crate::segments!(
-        $crate::testing::__map [$item]
+        $crate::__map[$item]
         where [$char] in $($tokens)*
     ), punctuation)
 })} pub(crate) use __punctuated;

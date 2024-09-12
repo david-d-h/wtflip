@@ -18,6 +18,7 @@ pub enum Statement {
     VarDeclaration(VarDeclaration),
     VarAssignment(VarAssignment),
     Expression(expression::Expression),
+    Return(Option<expression::Expression>),
 }
 
 #[macro_export]
@@ -38,6 +39,11 @@ macro_rules! Statement {
                 name: $crate::Identifier!($name),
                 value: $crate::Expression!($($expr)*),
             },
+        )
+    });
+    (return $($tokens:tt)*) => ({
+        $crate::statement::Statement::Return(
+            $crate::__optional!([$crate::Expression] $($tokens)*)
         )
     });
     ($($tokens:tt)*) => ({
@@ -84,6 +90,15 @@ mod tests {
                 name: #Identifier(byebye),
                 value: #Expression::Literal(":("),
             }
+        }
+    }
+
+    #[test]
+    fn r#return() {
+        let ast = crate::Statement!(return 12.0);
+
+        testing::test_ast! { ast ->
+            Statement::Return(Literal(12.0))
         }
     }
 }
